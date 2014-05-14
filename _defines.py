@@ -20,4 +20,9 @@ USB2000_TRIGGER_MODES = {
         'external_HW_edge' : 4 
         }
 
-
+QE65000_TRIGGER_MODES = {
+        'normal' : 0,
+        'external_HW_lvl' : 1,
+        'external_sync' : 2,
+        'external_HW_edge' : 3
+        }

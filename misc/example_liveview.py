@@ -12,6 +12,8 @@ if __name__ == '__main__':
     import OceanOptics
     
     from gi.repository import Gtk, GLib
+    from itertools import cycle
+
 
     class mpl:
         from matplotlib.figure import Figure
@@ -19,14 +21,17 @@ if __name__ == '__main__':
 
     class DynamicPlotter(Gtk.Window):
 
-        def __init__(self, sampleinterval=0.1, size=(600,350), raw=False):
+        def __init__(self, sampleinterval=0.01, size=(1000,500), raw=False):
             # Gtk stuff
-            Gtk.Window.__init__(self, title='OceanOptics USB2000+ Spectrum')
+            #Gtk.Window.__init__(self, title='OceanOptics USB2000+ Spectrum')
+            self._window_title = 'OceanOptics QE65000 Spectrum'
+            Gtk.Window.__init__(self, title= self._window_title)
             self.connect("destroy", lambda x : Gtk.main_quit())
             self.set_default_size(*size)
             # Data stuff
             self._interval = int(sampleinterval*1000)
-            self.spec = OceanOptics.USB2000()
+            #self.spec = OceanOptics.USB2000()
+            self.spec = OceanOptics.QE65000()
             self.wl, self.sp = self.spec.acquire_spectrum()
             self.raw = bool(raw)
             # MPL stuff
@@ -42,14 +47,19 @@ if __name__ == '__main__':
 
         def updateplot(self):
             if self.raw:
-                self.sp = np.array(self.spec._request_spectrum())[20:]
+                self.sp = self.spec._request_spectrum()
             else:
                 _, self.sp = self.spec.acquire_spectrum()
             self.line.set_ydata(self.sp)
             self.ax.relim()
             self.ax.autoscale_view(False, False, True)
             self.canvas.draw()
+            self._update_title()
             return True
+
+        def _update_title(self, _suff=cycle('/|\-')):
+            self.set_title('%s %s' % (self._window_title, next(_suff)))
+            return True  # continue updates
 
         def run(self):
             GLib.timeout_add(self._interval, self.updateplot )
