@@ -333,12 +333,15 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         Sets the temperature setpoint for the TEC (0x73)
         :param temp: setpoint (temperature) for the TEC
         """
+        #fixme: still not sure if '>Bh' is correct, '<Bh' does not work. Manual is not clear in this case
         message = struct.pack('>Bh', 0x73, (temp * 10))
         self._usb_send(message)
         time.sleep(0.3)
 
     def get_temperatures(self):
-        """ 0x6C read pcb temperature """
+        """
+        0x6C read pcb and heatsink temperature
+        """
         self._usb_send(struct.pack('<B', 0x6C))
         ret = self._usb_read()
         if (ret[0] != 0x08) | (ret[0] != 0x08):
@@ -350,12 +353,21 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
 
 
     def get_TEC_temperature(self):
+        """
+        Read out temperature of the TEC
+        :return: temperature of the TEC
+        """
         temp = self._tec_controller_read()
         temp = struct.unpack('<h', temp)[0] / 10  # decode TEC temperature
         return temp
 
 
     def set_TEC_temperature(self, temperature):
+        """
+        function for setting the setpoint of the TEC
+        :param temperature: temperature setpoint
+        :return: temperature of the TEC
+        """
         self.get_TEC_temperature()  # Read Temp
         self._tec_controller_write(0x00)  # disbable TEC
         time.sleep(0.1)  # pause
@@ -366,6 +378,11 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         return self.get_TEC_temperature()
 
     def initialize_TEC(self):
+        """
+        function for initializing the TEC
+        - the "waiting for cooldown" time might be too short, but setting it higher would be annoying
+        - A standard setpoint of -15 degree celcius is choosen, should work for most cases
+        """
         setpoint = -15  # Standard value for setpoint, should be good for most cases
         print('Initializing TEC:')
         temp = self.set_TEC_temperature(setpoint)
