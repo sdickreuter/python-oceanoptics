@@ -120,7 +120,6 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         self._wl = sum(self._wl_factors[i] *
                        np.arange(self._pixels, dtype=np.float64) ** i for i in range(4))
         self._valid_pixels = _OOValidPixels[model]
-        print(status)
 
     #---------------------
     # High level functions
@@ -207,9 +206,11 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         """get or set integration_time in seconds
         """
         if not (time is None):
-            time_us = time * 1000000
-            self._set_integration_time(time_us)
+            time_ms = time * 1000
+            self._set_integration_time(time_ms)
         self._integration_time = self._query_status()['integration_time'] * 1e-6
+        if not self._integration_time == time_ms:
+            print('Could not set integration time. Integration time = %s' % self._integration_time)
         return self._integration_time
 
 
@@ -248,9 +249,9 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         """ send command 0x01 """
         self._usb_send(struct.pack('<B', 0x01))
 
-    def _set_integration_time(self, time_us):
+    def _set_integration_time(self, time_ms):
         """ send command 0x02 """
-        self._usb_send(struct.pack('<BI', 0x02, int(time_us)))
+        self._usb_send(struct.pack('<BI', 0x02, int(time_ms)))
 
     def _query_information(self, address, raw=False):
         """ send command 0x05 """
