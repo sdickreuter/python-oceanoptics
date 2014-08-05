@@ -304,8 +304,9 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         Switches fan always to on, switching the fan off might be unsafe
 
         """
+        time.sleep(0.2)  # wait 200ms
         self._usb_send(struct.pack('<BBB', 0x70, 0x01, 0x00))
-        time.sleep(0.3)  # wait 200ms
+        time.sleep(0.2)  # wait 200ms
 
 
     def _set_tec_controller_state(self, state):
@@ -313,8 +314,9 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         Switches the TEC on and off (0x71)
         :param state: 0x01 for on, 0x00 for off
         """
+        time.sleep(0.2)  # wait 200ms
         self._usb_send(struct.pack('<BBB', 0x71, state, 0x00))
-        time.sleep(0.3)  # wait 200ms
+        time.sleep(0.2)  # wait 200ms
 
 
     def _tec_controller_read(self):
@@ -322,9 +324,11 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         Function for reading information (temperature setpoint) from the TEC (0x72)
         :return: data from TEC
         """
+        time.sleep(0.2)  # wait 200ms
         self._usb_send(struct.pack('<B', 0x72))
+        time.sleep(0.2)  # wait 200ms
         ret = self._usb_read()
-        time.sleep(0.3)
+        time.sleep(0.2)  # wait 200ms
         return ret
 
 
@@ -335,15 +339,19 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         """
         #fixme: still not sure if '>Bh' is correct, '<Bh' does not work. Manual is not clear in this case
         message = struct.pack('>Bh', 0x73, (temp * 10))
+        time.sleep(0.2)  # wait 200ms
         self._usb_send(message)
-        time.sleep(0.3)
+        time.sleep(0.2)  # wait 200ms
 
     def get_temperatures(self):
         """
         0x6C read pcb and heatsink temperature
         """
+        time.sleep(0.2)  # wait 200ms
         self._usb_send(struct.pack('<B', 0x6C))
+        time.sleep(0.2)  # wait 200ms
         ret = self._usb_read()
+        time.sleep(0.2)
         if (ret[0] != 0x08) | (ret[0] != 0x08):
             raise _OOError('read_temperatures: Wrong answer')
         pcb = struct.unpack('<h', ret[1:3])[0] * 0.003906
@@ -370,12 +378,12 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         """
         self.get_TEC_temperature()  # Read Temp
         self._tec_controller_write(0x00)  # disbable TEC
-        time.sleep(0.1)  # pause
         self._tec_controller_write(temperature)  # write temperature setpoint
         self._set_fan_state(0x01)  # enable Fan
         self._tec_controller_write(0x01)  # enable TEC
         time.sleep(3)  # wait until TEC has cooled down
         return self.get_TEC_temperature()
+
 
     def initialize_TEC(self):
         """
@@ -383,7 +391,7 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         - the "waiting for cooldown" time might be too short, but setting it higher would be annoying
         - A standard setpoint of -15 degree celcius is choosen, should work for most cases
         """
-        setpoint = -15  # Standard value for setpoint, should be good for most cases
+        setpoint = -18  # Standard value for setpoint, should be good for most cases
         print('Initializing TEC:')
         temp = self.set_TEC_temperature(setpoint)
         print('Setpoint = %s' % setpoint)
