@@ -209,8 +209,8 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
             time_ms = time * 1000
             self._set_integration_time(time_ms)
         self._integration_time = self._query_status()['integration_time'] * 1e-6
-        if not self._integration_time == time_ms:
-            print('Could not set integration time. Integration time = %s' % self._integration_time)
+        if not self._integration_time == time:
+            print('Could not set integration time. Integration time = %s' % self._integration_time s)
         return self._integration_time
 
 
