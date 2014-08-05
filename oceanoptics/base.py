@@ -210,7 +210,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
             self._set_integration_time(time_ms)
         self._integration_time = self._query_status()['integration_time'] * 1e-3
         if self._integration_time != time:
-            print('Could not set integration time. Integration time = %s s' % self._integration_time )
+            print('Could not set integration time to %s s.' % time )
         return self._integration_time
 
 
@@ -362,12 +362,19 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         self._tec_controller_write(temperature)  # write temperature setpoint
         self._set_fan_state(0x01)  # enable Fan
         self._tec_controller_write(0x01)  # enable TEC
-        time.sleep(2)  # wait until TEC has cooled down
+        time.sleep(3)  # wait until TEC has cooled down
         return self.get_TEC_temperature()
 
     def initialize_TEC(self):
-        print('Initializing TEC ...')
-        temp = self.set_TEC_temperature(-15)
+        setpoint = -15  # Standard value for setpoint, should be good for most cases
+        print('Initializing TEC:')
+        temp = self.set_TEC_temperature(setpoint)
+        print('Setpoint = %s' % setpoint)
+        print('Waiting for cooldown')
+        for i in range(5):
+            time.sleep(1)
+            print('...')
+        temp = self.get_TEC_temperature()
         print('TEC Temperature: %s' % temp)
         print('TEC initialized')
 
