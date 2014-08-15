@@ -1,4 +1,5 @@
-# ----------------------------------------------------------
+
+#----------------------------------------------------------
 import numpy as np
 import struct
 import time
@@ -18,29 +19,29 @@ class OceanOpticsSpectrometer(object):
     All spectrometers should inherit from this!
     (or from a class that inherits from this)
     """
-
     def wavelengths(self, only_valid_pixels=True):
         """ returns a np.array with wavelenghts in nm """
         raise NotImplementedError
 
     def intensities(self, raw=False, only_valid_pixels=True,
-                    correct_nonlinearity=True, correct_darkcounts=True,
-                    correct_saturation=True):
+            correct_nonlinearity=True, correct_darkcounts=True,
+            correct_saturation=True ):
         """ returns a np.array with all intensities """
         raise NotImplementedError
 
     def spectrum(self, raw=False, only_valid_pixels=True,
-                 correct_nonlinearity=True, correct_darkcounts=True,
-                 correct_saturation=True):
+            correct_nonlinearity=True, correct_darkcounts=True,
+            correct_saturation=True ):
         """ returns a 2d np.array with all wavelengths and intensities """
         raise NotImplementedError
 
-    def integration_time(self, time=None):
-        """ returns / sets the current integration_time """
+    def integration_time(self, time_sec=None):
+        """ returns / sets the current integration_time in seconds """
         raise NotImplementedError
 
 
 class OceanOpticsUSBComm(object):
+
     def __init__(self, model):
         self._usb_init_connection(model)
 
@@ -57,8 +58,8 @@ class OceanOpticsUSBComm(object):
         self._EPin1_size = _OOModelConfig[model]['EPin1_size']
 
         devices = usb.core.find(find_all=True,
-                                custom_match=lambda d: (d.idVendor == vendorId and
-                                                        d.idProduct in productId))
+                        custom_match=lambda d: (d.idVendor==vendorId and
+                                                d.idProduct in productId))
         # FIXME: generator fix
         devices = list(devices)
 
@@ -110,15 +111,16 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         self._pixels = status['pixels']
         self._EPspec = self._EPin1 if self._usb_speed == 0x80 else self._EPin0
         self._packet_N, self._packet_size, self._packet_func = (
-            _OOSpecConfig[model][self._usb_speed] )
+                _OOSpecConfig[model][self._usb_speed] )
         self._init_robust_spectrum()
+
         # XXX: differs for some spectrometers...
         #self._sat_factor = 65535.0/float(
         #      stuct.unpack('<h', self._query_information(17, raw=True)[6:8])[0])
-        self._wl_factors = [float(self._query_information(i)) for i in range(1, 5)]
-        self._nl_factors = [float(self._query_information(i)) for i in range(6, 14)]
-        self._wl = sum(self._wl_factors[i] *
-                       np.arange(self._pixels, dtype=np.float64) ** i for i in range(4))
+        self._wl_factors = [float(self._query_information(i)) for i in range(1,5)]
+        self._nl_factors = [float(self._query_information(i)) for i in range(6,14)]
+        self._wl = sum( self._wl_factors[i] *
+              np.arange(self._pixels, dtype=np.float64)**i for i in range(4) )
         self._valid_pixels = _OOValidPixels[model]
 
     #---------------------
@@ -197,20 +199,18 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         """
         return np.vstack((self.wavelengths(only_valid_pixels=only_valid_pixels),
                           self.intensities(raw=raw,
-                                           only_valid_pixels=only_valid_pixels,
-                                           correct_nonlinearity=correct_nonlinearity,
-                                           correct_darkcounts=correct_darkcounts,
-                                           correct_saturation=correct_saturation)))
+                                only_valid_pixels=only_valid_pixels,
+                                correct_nonlinearity=correct_nonlinearity,
+                                correct_darkcounts=correct_darkcounts,
+                                correct_saturation=correct_saturation)))
 
-    def integration_time(self, time=None):
+    def integration_time(self, time_sec=None):
         """get or set integration_time in seconds
         """
-        if not (time is None):
-            time_ms = time * 1000
-            self._set_integration_time(time_ms)
-        self._integration_time = self._query_status()['integration_time'] * 1e-3
-        if self._integration_time != time:
-            print('Could not set integration time to %s s.' % time )
+        if not (time_sec is None):
+            time_us = time_sec * 1000000
+            self._set_integration_time(time_us)
+        self._integration_time = self._query_status()['integration_time']*1e-6
         return self._integration_time
 
 
@@ -223,22 +223,18 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
             try:
                 status = self._query_status()
                 break
-            except usb.core.USBError:
-                pass
-        else:
-            raise _OOError('Initialization USBCOM')
+            except usb.core.USBError: pass
+        else: raise _OOError('Initialization USBCOM')
         return status
 
     def _init_robust_spectrum(self):
-        self.integration_time(0.2)
+        self.integration_time(0.001)
         for i in range(10):
             try:
                 self._request_spectrum()
                 break
-            except:
-                raise
-        else:
-            raise _OOError('Initialization SPECTRUM')
+            except: raise
+        else: raise _OOError('Initialization SPECTRUM')
 
 
     #---------------------
@@ -249,17 +245,17 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         """ send command 0x01 """
         self._usb_send(struct.pack('<B', 0x01))
 
-    def _set_integration_time(self, time_ms):
+    def _set_integration_time(self, time_us):
         """ send command 0x02 """
-        self._usb_send(struct.pack('<BI', 0x02, int(time_ms)))
+        self._usb_send(struct.pack('<BI', 0x02, int(time_us)))
 
     def _query_information(self, address, raw=False):
         """ send command 0x05 """
         ret = self._usb_query(struct.pack('<BB', 0x05, int(address)))
         if bool(raw): return ret
-        if ret[0] != 0x05 or ret[1] != int(address) % 0xFF:
+        if ret[0] != 0x05 or ret[1] != int(address)%0xFF:
             raise _OOError('query_information: Wrong answer')
-        return ret[2:ret[2:].index(0) + 2].tostring()
+        return ret[2:ret[2:].index(0)+2].tostring()
 
     def _write_information(self):
         raise NotImplementedError
@@ -267,13 +263,13 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
     def _request_spectrum(self):
         self._usb_send(struct.pack('<B', 0x09))
         time.sleep(max(self._integration_time - self._USBTIMEOUT, 0))
-        ret = [self._usb_read(epi=self._EPspec, epi_size=self._packet_size)
-               for _ in range(self._packet_N)]
-        ret = sum(ret[1:], ret[0])
+        ret = [ self._usb_read(epi=self._EPspec, epi_size=self._packet_size)
+                            for _ in range(self._packet_N) ]
+        ret = sum( ret[1:], ret[0] )
         sync = self._usb_read(epi=self._EPspec, epi_size=1)
         if sync[0] != 0x69:
             raise _OOError('request_spectrum: Wrong sync byte')
-        spectrum = struct.unpack('<' + 'H' * self._pixels, ret)
+        spectrum = struct.unpack('<'+'H'*self._pixels, ret)
         spectrum = map(self._packet_func, spectrum)
         return spectrum
 
@@ -281,15 +277,15 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         """ 0xFE query status """
         ret = self._usb_query(struct.pack('<B', 0xFE))
         data = struct.unpack('<HLBBBBBBBBBB', ret[:])
-        ret = {'pixels': data[0],
-               'integration_time': data[1],
-               'lamp_enable': data[2],
-               'trigger_mode': data[3],
-               'acquisition_status': data[4],
-               'packets_in_spectrum': data[5],
-               'power_down': data[6],
-               'packets_in_endpoint': data[7],
-               'usb_speed': data[10]}
+        ret = { 'pixels' : data[0],
+                'integration_time' : data[1],
+                'lamp_enable' : data[2],
+                'trigger_mode' : data[3],
+                'acquisition_status' : data[4],
+                'packets_in_spectrum' : data[5],
+                'power_down' : data[6],
+                'packets_in_endpoint' : data[7],
+                'usb_speed' : data[10] }
         return ret
 
 
@@ -304,9 +300,8 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         Switches fan always to on, switching the fan off might be unsafe
 
         """
-        time.sleep(0.2)  # wait 200ms
         self._usb_send(struct.pack('<BBB', 0x70, 0x01, 0x00))
-        time.sleep(0.2)  # wait 200ms
+        time.sleep(0.1)  # wait 200ms
 
 
     def _set_tec_controller_state(self, state):
@@ -314,9 +309,8 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         Switches the TEC on and off (0x71)
         :param state: 0x01 for on, 0x00 for off
         """
-        time.sleep(0.2)  # wait 200ms
         self._usb_send(struct.pack('<BBB', 0x71, state, 0x00))
-        time.sleep(0.2)  # wait 200ms
+        time.sleep(0.1)  # wait 200ms
 
 
     def _tec_controller_read(self):
@@ -324,11 +318,10 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         Function for reading information (temperature setpoint) from the TEC (0x72)
         :return: data from TEC
         """
-        time.sleep(0.2)  # wait 200ms
         self._usb_send(struct.pack('<B', 0x72))
-        time.sleep(0.2)  # wait 200ms
+        time.sleep(0.1)  # wait 200ms
         ret = self._usb_read()
-        time.sleep(0.2)  # wait 200ms
+        time.sleep(0.1)  # wait 200ms
         return ret
 
 
@@ -337,21 +330,18 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         Sets the temperature setpoint for the TEC (0x73)
         :param temp: setpoint (temperature) for the TEC
         """
-        #fixme: still not sure if '>Bh' is correct, '<Bh' does not work. Manual is not clear in this case
-        message = struct.pack('>Bh', 0x73, (temp * 10))
-        time.sleep(0.2)  # wait 200ms
+        message = struct.pack('<Bh', 0x73, (temp * 10))
         self._usb_send(message)
-        time.sleep(0.2)  # wait 200ms
+        time.sleep(0.1)  # wait 200ms
 
     def get_temperatures(self):
         """
         0x6C read pcb and heatsink temperature
         """
-        time.sleep(0.2)  # wait 200ms
         self._usb_send(struct.pack('<B', 0x6C))
-        time.sleep(0.2)  # wait 200ms
+        time.sleep(0.1)  # wait 200ms
         ret = self._usb_read()
-        time.sleep(0.2)
+        time.sleep(0.1)
         if (ret[0] != 0x08) | (ret[0] != 0x08):
             raise _OOError('read_temperatures: Wrong answer')
         pcb = struct.unpack('<h', ret[1:3])[0] * 0.003906
@@ -377,11 +367,11 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         :return: temperature of the TEC
         """
         self.get_TEC_temperature()  # Read Temp
-        self._tec_controller_write(0x00)  # disbable TEC
+        self._set_tec_controller_state(0x00)  # disbable TEC
         self._tec_controller_write(temperature)  # write temperature setpoint
         self._set_fan_state(0x01)  # enable Fan
-        self._tec_controller_write(0x01)  # enable TEC
-        time.sleep(3)  # wait until TEC has cooled down
+        self._set_tec_controller_state(0x01)  # enable TEC
+        time.sleep(2)  # wait until TEC has cooled down
         return self.get_TEC_temperature()
 
 
@@ -391,16 +381,27 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         - the "waiting for cooldown" time might be too short, but setting it higher would be annoying
         - A standard setpoint of -15 degree celcius is choosen, should work for most cases
         """
-        setpoint = -18  # Standard value for setpoint, should be good for most cases
+        setpoint = -17  # Standard value for setpoint, results in a TEC temperature of -15 degrees
+        print(
+        'Attention: If USB power is applied prior to the TEC power, setting the TEC temperature will not be effective.')
         print('Initializing TEC:')
         temp = self.set_TEC_temperature(setpoint)
         print('Setpoint = %s' % setpoint)
         print('Waiting for cooldown')
-        for i in range(5):
+        for i in range(10):
             time.sleep(1)
-            print('...')
-        temp = self.get_TEC_temperature()
+            temp = self.get_TEC_temperature()
+            print('... Temp.: %s ' % temp)
+            if temp <= (setpoint - 2): break  # Setpoint is 2 degrees lower than actual Temperature !
+        if temp < setpoint:
+            print('Cooldown complete')
+        else:
+            print('Cooldown not complete, wait some more seconds before using')
         print('TEC Temperature: %s' % temp)
+        # status = self._tec_controller_get_status()
+        #print('TEC enable: %s' % status[0])
+        #print('FAN enable: %s' % status[1])
+        #print('TEC setpoint: %s' % status[2])
         print('TEC initialized')
 
 

@@ -31,11 +31,15 @@ def get_a_random_spectrometer():
 
     if mod == 'STS':
         from spectrometers.STS import STS
-
         return STS()
     elif mod == 'QE65000':
         from spectrometers.QE65000 import QE65000
-
         return QE65000()
+    elif mod == 'USB4000':
+        from spectrometers.USB4000 import USB4000
+        return USB4000()
+    elif mod == 'HR4000':
+        from spectrometers.HR4000 import HR4000
+        return HR4000()
     return _OOBase(mod)
 
