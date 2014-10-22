@@ -11,6 +11,8 @@ from oceanoptics.spectrometers.QE65xxx import QE65000, QE65pro
 from oceanoptics.spectrometers.TORUS import TORUS
 from oceanoptics.spectrometers.STS import STS
 from oceanoptics.spectrometers.Dummy import Dummy
+from oceanoptics.spectrometers.ParticleDummy import ParticleDummy
+
 
 from oceanoptics.defines import OceanOpticsError
 
