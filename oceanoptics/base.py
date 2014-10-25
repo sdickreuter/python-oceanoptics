@@ -392,8 +392,8 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
             time.sleep(1)
             temp = self.get_TEC_temperature()
             print('... Temp.: %s ' % temp)
-            if temp <= (setpoint - 2): break  # Setpoint is 2 degrees lower than actual Temperature !
-        if temp < setpoint:
+            if temp <= (setpoint + 2): break  # Setpoint is 2 degrees lower than actual Temperature !
+        if temp <= setpoint:
             print('Cooldown complete')
         else:
             print('Cooldown not complete, wait some more seconds before using')
