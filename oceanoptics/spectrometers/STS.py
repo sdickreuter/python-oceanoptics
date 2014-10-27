@@ -316,7 +316,7 @@ class STS(_OOSpec, _OOUSBComm):
         """message layout, see STS datasheet
 
         """
-        if request_ACK == True:
+        if request_ACK:
             flags = self._const.FLAG_REQUEST_ACK
         else:
             flags = 0

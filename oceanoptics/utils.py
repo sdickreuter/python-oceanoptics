@@ -44,14 +44,14 @@ def get_a_random_spectrometer():
     devices = list(devices)
 
     if devices:
-        print '> found:'
+        print('> found:')
     else:
         raise _OOError('no supported spectrometers found')
     for d in devices:
-        print '>  - %s' % ProductId[d.idProduct]
+        print('>  - %s' % ProductId[d.idProduct])
 
     mod = ProductId[devices[0].idProduct]
-    print '>'
-    print '> returning first %s as OceanOpticsSpectrometer' % mod
+    print('>')
+    print('> returning first %s as OceanOpticsSpectrometer' % mod)
 
     return _models[mod]

@@ -142,5 +142,5 @@ OceanOpticsValidPixels = {
     }
 
 
-OceanOpticsSupportedModels = OceanOpticsSpectrumConfig.keys() + ['STS']
+OceanOpticsSupportedModels = OceanOpticsSpectrumConfig.keys() #+ ['STS']
 

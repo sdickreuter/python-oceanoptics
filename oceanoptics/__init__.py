@@ -13,7 +13,6 @@ from oceanoptics.spectrometers.STS import STS
 from oceanoptics.spectrometers.Dummy import Dummy
 from oceanoptics.spectrometers.ParticleDummy import ParticleDummy
 
-
 from oceanoptics.defines import OceanOpticsError
 
 from oceanoptics.utils import get_a_random_spectrometer

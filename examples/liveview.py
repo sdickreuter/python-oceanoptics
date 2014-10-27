@@ -14,7 +14,7 @@ from gi.repository import Gtk, GLib
 
 class mpl:
     from matplotlib.figure import Figure
-    from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
+    from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
 
 
 class DynamicPlotter(Gtk.Window):
@@ -29,8 +29,9 @@ class DynamicPlotter(Gtk.Window):
         self.smoothing = int(smoothing)
         self._sample_n = 0
         self.raw = bool(raw)
-        self.spectrometer = oceanoptics.get_a_random_spectrometer()
-        self.spectrometer.integration_time(time_sec=(sample_interval_sec * 0.8))
+        #self.spectrometer = oceanoptics.get_a_random_spectrometer()
+        self.spectrometer = oceanoptics.Dummy()
+        self.spectrometer.integration_time((sample_interval_sec * 0.8))
         self.wl = self.spectrometer.wavelengths()
         self.sp = self.spectrometer.intensities()
         self.sp = np.zeros((len(self.sp), int(oversampling)))
