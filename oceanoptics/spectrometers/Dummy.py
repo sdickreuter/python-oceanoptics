@@ -18,8 +18,9 @@ class Dummy(_OOBase):
 
     def _request_spectrum(self):
         spectrum = np.random.random_integers(2400, 2600, 1024)
+        #spectrum = np.random.normal(2500, 100, 1024)
         spectrum = np.array(spectrum, dtype=np.float)
-        spectrum += 200 * self.__gaussian(self.wavelengths(), 512, 0.02)
+        spectrum += 500 * self.__gaussian(self.wavelengths(), 512, 0.02)
         spectrum = np.array(spectrum, dtype=np.uint16)
         time.sleep(float(self._integration_time) / 1000000)
         return spectrum

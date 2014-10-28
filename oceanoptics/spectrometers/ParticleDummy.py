@@ -30,19 +30,21 @@ class ParticleDummy(_OOBase):
 
 
     def _calc_spectrum(self):
+        #spectrum = np.random.normal(2500, 100, 1024)
         spectrum = np.random.random_integers(2400, 2600, 1024)
         spectrum = np.array(spectrum, dtype=np.float)
-        spectrum += 300 * self.__gaussian(self.wavelengths(), 512, 60)
+        spectrum += 500 * self.__gaussian(self.wavelengths(), 512, 60)
         spectrum = np.array(spectrum, dtype=np.uint16)
         return spectrum
 
     def _calc_particle_spectrum(self):
-        spectrum = np.random.random_integers(2400, 2600, 1024)
 
         for pos in self._particles:
-            x, y, z = self._stage.pos()
+            x, y, z = self._stage.query_pos()
             intensity = self.__gaussian2d(x, y, pos[0], pos[1], 1)
-            spectrum += 300 * intensity * self.__gaussian(self.wavelengths(), 512, 60)
+            #spectrum = np.random.normal(2500, 100, 1024)
+            spectrum = np.random.random_integers(2400, 2600, 1024)
+            spectrum += 500 * intensity * self.__gaussian(self.wavelengths(), 512, 60)
 
         spectrum = np.array(spectrum, dtype=np.uint16)
         return spectrum
