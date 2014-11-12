@@ -271,12 +271,14 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
             raise _OOError('request_spectrum: Wrong sync byte')
         spectrum = struct.unpack('<'+'H'*self._pixels, ret)
         spectrum = map(self._packet_func, spectrum)
-        return spectrum
+        return list(spectrum)
 
     def _query_status(self):
         """ 0xFE query status """
         ret = self._usb_query(struct.pack('<B', 0xFE))
+        #print(ret)
         data = struct.unpack('<HLBBBBBBBBBB', ret[:])
+        #print(data)
         ret = { 'pixels' : data[0],
                 'integration_time' : data[1],
                 'lamp_enable' : data[2],
@@ -286,6 +288,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
                 'power_down' : data[6],
                 'packets_in_endpoint' : data[7],
                 'usb_speed' : data[10] }
+        #print(ret)
         return ret
 
 
