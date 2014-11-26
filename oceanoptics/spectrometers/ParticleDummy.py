@@ -15,7 +15,7 @@ class ParticleDummy(_OOBase):
         self._integration_time = 1000
         self._particles = particles
         self._stage = stage
-        print('ParticleDummy class initialized')
+        print('Dummy Spectrometer with dummy particles initialized')
 
     @staticmethod
     def __gaussian(x, mu, sig):
@@ -33,7 +33,7 @@ class ParticleDummy(_OOBase):
         #spectrum = np.random.normal(2500, 100, 1024)
         spectrum = np.random.random_integers(2400, 2600, 1024)
         spectrum = np.array(spectrum, dtype=np.float)
-        spectrum += 500 * self.__gaussian(self.wavelengths(), 512, 60)
+        spectrum += np.random.random_integers(190,210,1) * self.__gaussian(self.wavelengths(), 512, 60)
         spectrum = np.array(spectrum, dtype=np.uint16)
         return spectrum
 
@@ -44,7 +44,7 @@ class ParticleDummy(_OOBase):
             intensity = self.__gaussian2d(x, y, pos[0], pos[1], 1)
             #spectrum = np.random.normal(2500, 100, 1024)
             spectrum = np.random.random_integers(2400, 2600, 1024)
-            spectrum += 500 * intensity * self.__gaussian(self.wavelengths(), 512, 60)
+            spectrum += np.random.random_integers(190,210,1) * intensity * self.__gaussian(self.wavelengths(), 512, 60)
 
         spectrum = np.array(spectrum, dtype=np.uint16)
         return spectrum

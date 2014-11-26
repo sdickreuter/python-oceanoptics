@@ -10,7 +10,7 @@ from oceanoptics.base import OceanOpticsBase as _OOBase
 class Dummy(_OOBase):
     def __init__(self):
         self._integration_time = 1000
-        print('Dummy class initialized')
+        print('Dummy Spectrometer initialized')
 
     @staticmethod
     def __gaussian(x, mu, sig):
