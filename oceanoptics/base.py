@@ -398,7 +398,8 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         - the "waiting for cooldown" time might be too short, but setting it higher would be annoying
         - A standard setpoint of -15 degree celcius is choosen, should work for most cases
         """
-        setpoint = -17  # Standard value for setpoint, results in a TEC temperature of -15 degrees
+        #setpoint = -17  # Standard value for setpoint, results in a TEC temperature of -15 degrees
+        setpoint = -15  # Value from SpectraSuite
         print(
         'Attention: If USB power is applied prior to the TEC power, setting the TEC temperature will not be effective.')
         print('Initializing TEC:')
