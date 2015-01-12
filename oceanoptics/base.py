@@ -109,6 +109,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         self._usb_speed = status['usb_speed']
         self._integration_time = status['integration_time']
         self._pixels = status['pixels']
+        self._valid_pixels = _OOValidPixels[model]
         self._EPspec = self._EPin1 if self._usb_speed == 0x80 else self._EPin0
         self._packet_N, self._packet_size, self._packet_func = (
                 _OOSpecConfig[model][self._usb_speed] )
@@ -121,7 +122,8 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         self._nl_factors = [float(self._query_information(i)) for i in range(6,14)]
         self._wl = sum( self._wl_factors[i] *
               np.arange(self._pixels, dtype=np.float64)**i for i in range(4) )
-        self._valid_pixels = _OOValidPixels[model]
+        self._wl_corr = sum( self._wl_factors[i] *
+              np.arange(self._valid_pixels, dtype=np.float64)**i for i in range(4) )
 
     #---------------------
     # High level functions
@@ -141,7 +143,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
             wavelengths of spectrometer
         """
         if only_valid_pixels:
-            return self._wl[self._valid_pixels]
+            return self._wl_corr
         else:
             return self._wl
 
