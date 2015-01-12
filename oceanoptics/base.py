@@ -81,16 +81,19 @@ class OceanOpticsUSBComm(object):
             epo = self._EPout
         self._dev.write(epo, data)
 
-    def _usb_read(self, epi=None, epi_size=None, timeout=None):
+    def _usb_read(self, epi=None, epi_size=None):
         """ helper """
         if epi is None:
             epi = self._EPin0
         if epi_size is None:
             epi_size = self._EPin0_size
-        if timeout is None :
-            return self._dev.read(epi, epi_size)
-        else :
-            return self._dev.read(epi, epi_size,timeout)
+        for i in range(10):
+            try:
+                return self._dev.read(epi, epi_size)
+            except usb.core.USBError:
+                print("USB read timeout (%s times), retry ..." % (i+1))
+                return self._dev.read(epi, epi_size)
+        raise _OOError('USB Connection failed 10 times in a row !')
 
 
     def _usb_query(self, data, epo=None, epi=None, epi_size=None):
@@ -153,7 +156,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
             return np.linspace(0,self._pixels-1)
 
     def intensities(self, raw=False, only_valid_pixels=True,
-                    correct_nonlinearity=True, correct_darkcounts=True,
+                    correct_nonlinearity=False, correct_darkcounts=True,
                     correct_saturation=True):
         """returns array of intensities
 
@@ -184,7 +187,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         return data
 
     def spectrum(self, raw=False, only_valid_pixels=True,
-                 correct_nonlinearity=True, correct_darkcounts=True,
+                 correct_nonlinearity=False, correct_darkcounts=True,
                  correct_saturation=True):
         """returns array of wavelength and intensities
 
