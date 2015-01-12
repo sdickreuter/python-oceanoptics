@@ -121,8 +121,6 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         self._wl_factors = [float(self._query_information(i)) for i in range(1,5)]
         self._nl_factors = [float(self._query_information(i)) for i in range(6,14)]
         self._wl = sum( self._wl_factors[i] *
-              np.arange(self._pixels, dtype=np.float64)**i for i in range(4) )
-        self._wl_corr = sum( self._wl_factors[i] *
               np.arange(self._valid_pixels, dtype=np.float64)**i for i in range(4) )
 
     #---------------------
@@ -136,6 +134,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         ----------
         only_valid_pixels : bool, optional
             only optical active pixels are returned.
+            if false, just the pixel numbers are returned
 
         Returns
         -------
@@ -143,9 +142,9 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
             wavelengths of spectrometer
         """
         if only_valid_pixels:
-            return self._wl_corr
-        else:
             return self._wl
+        else:
+            return np.linspace(0,self._pixels-1)
 
     def intensities(self, raw=False, only_valid_pixels=True,
                     correct_nonlinearity=True, correct_darkcounts=True,
