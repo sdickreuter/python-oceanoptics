@@ -81,13 +81,17 @@ class OceanOpticsUSBComm(object):
             epo = self._EPout
         self._dev.write(epo, data)
 
-    def _usb_read(self, epi=None, epi_size=None):
+    def _usb_read(self, epi=None, epi_size=None, timeout=None):
         """ helper """
         if epi is None:
             epi = self._EPin0
         if epi_size is None:
             epi_size = self._EPin0_size
-        return self._dev.read(epi, epi_size)
+        if timeout is None :
+            return self._dev.read(epi, epi_size)
+        else :
+            return self._dev.read(epi, epi_size,timeout)
+
 
     def _usb_query(self, data, epo=None, epi=None, epi_size=None):
         """ helper """
@@ -175,6 +179,8 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
             data = np.array(self._request_spectrum()[self._valid_pixels], dtype=np.float64)
         else:
             data = np.array(self._request_spectrum(), dtype=np.float64)
+        if correct_nonlinearity:
+            data = data/self._calc_nonlinearity(data)
         return data
 
     def spectrum(self, raw=False, only_valid_pixels=True,
@@ -239,6 +245,8 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
             except: raise
         else: raise _OOError('Initialization SPECTRUM')
 
+    def _calc_nonlinearity(self, counts):
+        ret = sum( self._nl_factors[i] * counts**i for i in range(len(self._nl_factors)) )
 
     #---------------------
     # Low level functions.
@@ -265,8 +273,8 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
 
     def _request_spectrum(self):
         self._usb_send(struct.pack('<B', 0x09))
-        time.sleep(max(self._integration_time - self._USBTIMEOUT, 0))
-        ret = [ self._usb_read(epi=self._EPspec, epi_size=self._packet_size)
+        #time.sleep(max(self._integration_time - self._USBTIMEOUT, 0))
+        ret = [ self._usb_read(epi=self._EPspec, epi_size=self._packet_size, timeout = self._integration_time)
                             for _ in range(self._packet_N) ]
         ret = sum( ret[1:], ret[0] )
         sync = self._usb_read(epi=self._EPspec, epi_size=1)
@@ -293,6 +301,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
                 'usb_speed' : data[10] }
         #print(ret)
         return ret
+
 
 
 class OceanOpticsTEC(OceanOpticsUSBComm):
