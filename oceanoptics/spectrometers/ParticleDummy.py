@@ -51,7 +51,7 @@ class ParticleDummy(_OOBase):
 
 
     def _request_spectrum(self):
-        time.sleep(float(self._integration_time) / 1000000)
+        time.sleep(self._integration_time)
         if self._stage is None:
             return self._calc_spectrum()
         else:
@@ -69,4 +69,12 @@ class ParticleDummy(_OOBase):
 
     def integration_time(self, time_us=None):
         self._integration_time = time_us
+        print(float(self._integration_time) )
         return self._integration_time
+
+    def _set_integration_time(self, time_us):
+        """ send command 0x02 """
+        # XXX: The QE65000 requires the time set in Milliseconds!
+        #      This overides the provided function of OOBase
+        time_ms = int(time_us/1000)
+        self._integration_time  = time_us

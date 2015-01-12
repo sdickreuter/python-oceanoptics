@@ -22,7 +22,7 @@ class Dummy(_OOBase):
         spectrum = np.array(spectrum, dtype=np.float)
         spectrum += 500 * self.__gaussian(self.wavelengths(), 512, 0.02)
         spectrum = np.array(spectrum, dtype=np.uint16)
-        time.sleep(float(self._integration_time) / 1000000)
+        time.sleep(float(self._integration_time))
         return spectrum
 
     def intensities(self, raw=False, only_valid_pixels=True,
@@ -36,5 +36,5 @@ class Dummy(_OOBase):
         return np.linspace(200, 900, num=1024)
 
     def integration_time(self, time_us=None):
-        self._integration_time = time_us
+        self._integration_time = time_us*1000
         return self._integration_time
