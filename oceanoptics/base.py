@@ -87,13 +87,12 @@ class OceanOpticsUSBComm(object):
             epi = self._EPin0
         if epi_size is None:
             epi_size = self._EPin0_size
-        for i in range(10):
+        for i in range(20):
             try:
                 return self._dev.read(epi, epi_size)
             except usb.core.USBError:
                 print("USB read timeout (%s times), retry ..." % (i+1))
-                return self._dev.read(epi, epi_size)
-        raise _OOError('USB Connection failed 10 times in a row !')
+        raise _OOError('USB Connection failed 20 times in a row !')
 
 
     def _usb_query(self, data, epo=None, epi=None, epi_size=None):
