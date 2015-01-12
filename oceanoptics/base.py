@@ -118,10 +118,12 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         # XXX: differs for some spectrometers...
         #self._sat_factor = 65535.0/float(
         #      stuct.unpack('<h', self._query_information(17, raw=True)[6:8])[0])
-        self._wl_factors = [float(self._query_information(i)) for i in range(1,5)]
-        self._nl_factors = [float(self._query_information(i)) for i in range(6,14)]
+        self._wl_factors = [float(self._query_information(i).decode("utf-8").replace(",",".")) for i in range(1,5)]
+        self._nl_factors = [float(self._query_information(i).decode("utf-8").replace(",",".")) for i in range(6,14)]
         self._wl = sum( self._wl_factors[i] *
-              np.arange(self._valid_pixels, dtype=np.float64)**i for i in range(4) )
+                        (np.arange(self._valid_pixels.stop-self._valid_pixels.start, dtype=np.float64))**i for i in range(4) )
+
+
 
     #---------------------
     # High level functions
