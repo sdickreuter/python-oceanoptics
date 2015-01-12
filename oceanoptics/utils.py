@@ -5,7 +5,7 @@ from oceanoptics.defines import OceanOpticsVendorId as _OOVendorId
 from oceanoptics.defines import OceanOpticsError as _OOError
 
 import oceanoptics.spectrometers
-from oceanoptics.spectrometers.XXX2000 import USB2000, HR2000
+from oceanoptics.spectrometers.XXX2000 import USB2000, HR2000, USB650
 from oceanoptics.spectrometers.XXX2000plus import USB2000plus, HR2000plus
 from oceanoptics.spectrometers.XXX4000 import USB4000, HR4000
 from oceanoptics.spectrometers.MAYA import MAYA
@@ -17,9 +17,10 @@ from oceanoptics.spectrometers.STS import STS
 
 _models = {
 	"USB2000"	: USB2000,
+	"USB650"	: USB650,
 	"HR2000"	: HR2000,
-	"USB2000plus"	: USB2000plus,
-	"HR2000plus"	: HR2000plus,
+	"USB2000+"	: USB2000plus,
+	"HR2000+"	: HR2000plus,
 	"USB4000"	: USB4000,
 	"HR4000"	: HR4000,
 	"MAYA"	: MAYA,
@@ -54,4 +55,5 @@ def get_a_random_spectrometer():
     print('>')
     print('> returning first %s as OceanOpticsSpectrometer' % mod)
 
-    return _models[mod]
+    spec_class = _models[mod]
+    return spec_class()

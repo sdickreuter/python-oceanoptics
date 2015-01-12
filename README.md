@@ -1,9 +1,7 @@
 **This software is not associated with Ocean Optics. Use it at your own risk.**
 
-**Info:** There seems to be some development regarding thinner abstraction layers for
-the spectrometers. If the [SeaBreeze](http://oceanoptics.com/product/seabreeze/)
-library (a thin C/C++ abstraction layer) would be available, we could write
-a ctypes or cython interface for it and support everything needed.
+**Info:** If this is not working for you, checkout [python-seabreeze](https://github.com/ap--/python-seabreeze).
+
 
 ## Ocean Optics python module ##
 
@@ -23,13 +21,14 @@ the - also platform independent - SpectraSuite and OceanView software.
 * USB4000
 * QE65000
 * STS (Note: The rewritten class supports protocol version _0x1100_)
+* USB2000
+* USB650
 
 **Might work, untested:**
 
 * HR4000
 * QE65pro
 * HR2000+
-* USB2000
 * HR2000
 * apex
 * maya
