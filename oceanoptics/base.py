@@ -155,7 +155,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
             return np.linspace(0,self._pixels-1)
 
     def intensities(self, raw=False, only_valid_pixels=True,
-                    correct_nonlinearity=False, correct_darkcounts=True,
+                    correct_nonlinearity=True, correct_darkcounts=True,
                     correct_saturation=True):
         """returns array of intensities
 
@@ -183,10 +183,11 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
             data = np.array(self._request_spectrum(), dtype=np.float64)
         if correct_nonlinearity:
             data = data/self._calc_nonlinearity(data)
+            #print(self._calc_nonlinearity(data))
         return data
 
     def spectrum(self, raw=False, only_valid_pixels=True,
-                 correct_nonlinearity=False, correct_darkcounts=True,
+                 correct_nonlinearity=True, correct_darkcounts=True,
                  correct_saturation=True):
         """returns array of wavelength and intensities
 
@@ -248,7 +249,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         else: raise _OOError('Initialization SPECTRUM')
 
     def _calc_nonlinearity(self, counts):
-        ret = sum( self._nl_factors[i] * counts**i for i in range(8) )
+        return sum( self._nl_factors[i] * counts**i for i in range(8) )
 
     #---------------------
     # Low level functions.
