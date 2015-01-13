@@ -246,7 +246,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         else: raise _OOError('Initialization SPECTRUM')
 
     def _calc_nonlinearity(self, counts):
-        ret = sum( self._nl_factors[i] * counts**i for i in range(len(self._nl_factors)) )
+        ret = sum( self._nl_factors[i] * counts**i for i in range(8) )
 
     #---------------------
     # Low level functions.
