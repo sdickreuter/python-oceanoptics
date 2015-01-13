@@ -131,6 +131,13 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
 
 
 
+    def __del__(self):
+        """ Destructor for save release of the usb connection
+        """
+        self._dev.reset()
+
+
+
     #---------------------
     # High level functions
     #---------------------
