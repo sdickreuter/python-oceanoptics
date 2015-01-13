@@ -81,16 +81,18 @@ class OceanOpticsUSBComm(object):
             epo = self._EPout
         self._dev.write(epo, data)
 
-    def _usb_read(self, epi=None, epi_size=None, timeout=None):
+    def _usb_read(self, epi=None, epi_size=None):
         """ helper """
         if epi is None:
             epi = self._EPin0
         if epi_size is None:
             epi_size = self._EPin0_size
-        if timeout is None :
-            return self._dev.read(epi, epi_size)
-        else :
-            return self._dev.read(epi, epi_size,timeout)
+        for i in range(20):
+            try:
+                return self._dev.read(epi, epi_size)
+            except usb.core.USBError:
+                print("USB read timeout (%s times), retry ..." % (i+1))
+        raise _OOError('USB Connection failed 20 times in a row !')
 
 
     def _usb_query(self, data, epo=None, epi=None, epi_size=None):
@@ -153,7 +155,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
             return np.linspace(0,self._pixels-1)
 
     def intensities(self, raw=False, only_valid_pixels=True,
-                    correct_nonlinearity=True, correct_darkcounts=True,
+                    correct_nonlinearity=False, correct_darkcounts=True,
                     correct_saturation=True):
         """returns array of intensities
 
@@ -184,7 +186,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         return data
 
     def spectrum(self, raw=False, only_valid_pixels=True,
-                 correct_nonlinearity=True, correct_darkcounts=True,
+                 correct_nonlinearity=False, correct_darkcounts=True,
                  correct_saturation=True):
         """returns array of wavelength and intensities
 
@@ -274,7 +276,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
     def _request_spectrum(self):
         self._usb_send(struct.pack('<B', 0x09))
         #time.sleep(max(self._integration_time - self._USBTIMEOUT, 0))
-        ret = [ self._usb_read(epi=self._EPspec, epi_size=self._packet_size, timeout = self._integration_time)
+        ret = [ self._usb_read(epi=self._EPspec, epi_size=self._packet_size)
                             for _ in range(self._packet_N) ]
         ret = sum( ret[1:], ret[0] )
         sync = self._usb_read(epi=self._EPspec, epi_size=1)
@@ -396,7 +398,8 @@ class OceanOpticsTEC(OceanOpticsUSBComm):
         - the "waiting for cooldown" time might be too short, but setting it higher would be annoying
         - A standard setpoint of -15 degree celcius is choosen, should work for most cases
         """
-        setpoint = -17  # Standard value for setpoint, results in a TEC temperature of -15 degrees
+        #setpoint = -17  # Standard value for setpoint, results in a TEC temperature of -15 degrees
+        setpoint = -15  # Value from SpectraSuite
         print(
         'Attention: If USB power is applied prior to the TEC power, setting the TEC temperature will not be effective.')
         print('Initializing TEC:')
