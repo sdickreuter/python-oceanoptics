@@ -140,15 +140,6 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         self._wl = sum( self._wl_factors[i] *
                         (np.arange(self._valid_pixels.stop-self._valid_pixels.start, dtype=np.float64))**i for i in range(4) )
 
-
-
-    def __del__(self):
-        """ Destructor for save release of the usb connection
-        """
-        self._dev.reset()
-
-
-
     #---------------------
     # High level functions
     #---------------------
@@ -184,7 +175,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         only_valid_pixels : bool, optional
             only optical active pixels are returned.
         correct_nonlinearity : bool, optional
-            does nothing yet.
+            corrects for nonlinearity of CCD-Chip
         correct_darkcounts : bool, optional
             does nothing yet.
         correct_saturation : bool, optional
@@ -195,13 +186,15 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         intensities : ndarray
             intensities of spectrometer.
         """
+        def _calc_nonlinearity(self, counts):
+            return sum( self._nl_factors[i] * counts**i for i in range(8) )
+
         if only_valid_pixels:
             data = np.array(self._request_spectrum()[self._valid_pixels], dtype=np.float64)
         else:
             data = np.array(self._request_spectrum(), dtype=np.float64)
         if correct_nonlinearity:
             data = data/self._calc_nonlinearity(data)
-            #print(self._calc_nonlinearity(data))
         return data
 
     def spectrum(self, raw=False, only_valid_pixels=True,
@@ -216,7 +209,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         only_valid_pixels : bool, optional
             only optical active pixels are returned.
         correct_nonlinearity : bool, optional
-            does nothing yet.
+            corrects for nonlinearity of CCD-Chip
         correct_darkcounts : bool, optional
             does nothing yet.
         correct_saturation : bool, optional
@@ -265,9 +258,6 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
                 break
             except: raise
         else: raise _OOError('Initialization SPECTRUM')
-
-    def _calc_nonlinearity(self, counts):
-        return sum( self._nl_factors[i] * counts**i for i in range(8) )
 
     #---------------------
     # Low level functions.
