@@ -88,12 +88,12 @@ class OceanOpticsUSBComm(object):
             epi = self._EPin0
         if epi_size is None:
             epi_size = self._EPin0_size
-        for i in range(20):
+        for i in range(5):
             try:
                 return self._dev.read(epi, epi_size)
             except usb.core.USBError:
                 print("USB read timeout (%s times), retry ..." % (i+1))
-        raise _OOError('USB Connection failed 20 times in a row !')
+        raise _OOError('USB Connection failed 5 times in a row !')
 
 
     def _usb_query(self, data, epo=None, epi=None, epi_size=None):
@@ -186,9 +186,6 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         intensities : ndarray
             intensities of spectrometer.
         """
-        def _calc_nonlinearity(self, counts):
-            return sum( self._nl_factors[i] * counts**i for i in range(8) )
-
         if only_valid_pixels:
             data = np.array(self._request_spectrum()[self._valid_pixels], dtype=np.float64)
         else:
@@ -196,6 +193,10 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         if correct_nonlinearity:
             data = data/self._calc_nonlinearity(data)
         return data
+
+    def _calc_nonlinearity(self, counts):
+        return sum( self._nl_factors[i] * counts**i for i in range(8) )
+
 
     def spectrum(self, raw=False, only_valid_pixels=True,
                  correct_nonlinearity=True, correct_darkcounts=True,
@@ -284,7 +285,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
 
     def _request_spectrum(self):
         self._usb_send(struct.pack('<B', 0x09))
-        #time.sleep(max(self._integration_time - self._USBTIMEOUT, 0))
+        time.sleep(max(self._integration_time - 0.1*self._USBTIMEOUT, 0))
         ret = [ self._usb_read(epi=self._EPspec, epi_size=self._packet_size)
                             for _ in range(self._packet_N) ]
         ret = sum( ret[1:], ret[0] )
