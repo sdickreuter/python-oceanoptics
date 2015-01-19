@@ -11,6 +11,7 @@ from oceanoptics.defines import OceanOpticsModelConfig as _OOModelConfig
 from oceanoptics.defines import OceanOpticsVendorId as _OOVendorId
 from oceanoptics.defines import OceanOpticsSpectrumConfig as _OOSpecConfig
 from oceanoptics.defines import OceanOpticsValidPixels as _OOValidPixels
+from oceanoptics.defines import OceanOpticsDarkPixels as _OODarkPixels
 #----------------------------------------------------------
 
 
@@ -127,6 +128,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         self._integration_time = status['integration_time']
         self._pixels = status['pixels']
         self._valid_pixels = _OOValidPixels[model]
+        self._dark_pixels = _OODarkPixels[model]
         self._EPspec = self._EPin1 if self._usb_speed == 0x80 else self._EPin0
         self._packet_N, self._packet_size, self._packet_func = (
                 _OOSpecConfig[model][self._usb_speed] )
@@ -177,7 +179,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         correct_nonlinearity : bool, optional
             corrects for nonlinearity of CCD-Chip
         correct_darkcounts : bool, optional
-            does nothing yet.
+            substracts mean value of dark pixels from spectrum
         correct_saturation : bool, optional
             does nothing yet.
 
@@ -186,16 +188,26 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         intensities : ndarray
             intensities of spectrometer.
         """
-        if only_valid_pixels:
-            data = np.array(self._request_spectrum()[self._valid_pixels], dtype=np.float64)
-        else:
-            data = np.array(self._request_spectrum(), dtype=np.float64)
-        if correct_nonlinearity:
-            data = data/self._calc_nonlinearity(data)
-        return data
+        def calc_nonlinearity(counts):
+            return sum( self._nl_factors[i] * counts**i for i in range(8) )
 
-    def _calc_nonlinearity(self, counts):
-        return sum( self._nl_factors[i] * counts**i for i in range(8) )
+        data = np.array(self._request_spectrum(), dtype=np.float64)
+        dark = np.mean(data[self._dark_pixels])
+        if correct_darkcounts:
+            data = data - dark
+
+        if correct_nonlinearity and correct_darkcounts:
+            data = data/calc_nonlinearity(data)
+
+        if correct_nonlinearity and not correct_darkcounts:
+            data = data - dark
+            data = data/calc_nonlinearity(data)
+            data = data + dark
+
+        if only_valid_pixels:
+            data = data[self._valid_pixels]
+
+        return data
 
 
     def spectrum(self, raw=False, only_valid_pixels=True,
@@ -212,7 +224,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         correct_nonlinearity : bool, optional
             corrects for nonlinearity of CCD-Chip
         correct_darkcounts : bool, optional
-            does nothing yet.
+            substracts mean value of dark pixels from spectrum
         correct_saturation : bool, optional
             does nothing yet.
 
