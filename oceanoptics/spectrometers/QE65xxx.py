@@ -3,6 +3,7 @@
 from oceanoptics.base import OceanOpticsBase as _OOBase
 from oceanoptics.base import OceanOpticsTEC as _OOTEC
 import struct
+import numpy as np
 #----------------------------------------------------------
 
 

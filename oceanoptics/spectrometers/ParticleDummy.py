@@ -69,7 +69,6 @@ class ParticleDummy(_OOBase):
 
     def integration_time(self, time_us=None):
         self._integration_time = time_us
-        print(float(self._integration_time) )
         return self._integration_time
 
     def _set_integration_time(self, time_us):
