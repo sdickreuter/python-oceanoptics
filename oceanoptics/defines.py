@@ -150,6 +150,7 @@ OceanOpticsValidPixels = {
     'HR2000'        : slice(26, 2048),
     }
 
+
 OceanOpticsDarkPixels = {
     'Apex'          : [1,2,3,2064,2065,2066,2067],
     'HR2000+'       : [12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],
@@ -164,6 +165,23 @@ OceanOpticsDarkPixels = {
     'USB2000'       : [], #TODO: Add dark pixels
     'USB650'        : [], #TODO: Add dark pixels
     'HR2000'        : [], #TODO: Add dark pixels
+	}
+
+OceanOpticsMinMaxIntegrationTime = {
+    'Apex'          : (0.015, 1600.),
+    'HR2000+'       : (0.001, 655.350),
+    'HR4000'        : (0.00001, 655.350),
+    'Maya'          : (0.015, 1600.),
+    'Maya2000pro'   : (0.0072, 65.),
+    'QE65000'       : (0.008, 1600.),
+    'QE65pro'       : (0.010, 1600.),
+    'Torus'         : (0.0, float('inf')),  # TODO: don't know...
+    'USB2000+'      : (0.001, 655.350),
+    'USB4000'       : (0.00001, 655.350),
+    'USB2000'       : (0.003, 655.350),
+    'USB650'        : (0.003, 655.350),  # XXX: seems to be a rebranded USB2000
+    'HR2000'        : (0.003, 655.350),
+    'STS'           : (0.00001, 85.)
     }
 
 OceanOpticsSupportedModels = list(OceanOpticsSpectrumConfig.keys()) + ['STS']

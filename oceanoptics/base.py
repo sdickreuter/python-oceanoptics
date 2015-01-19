@@ -12,6 +12,7 @@ from oceanoptics.defines import OceanOpticsVendorId as _OOVendorId
 from oceanoptics.defines import OceanOpticsSpectrumConfig as _OOSpecConfig
 from oceanoptics.defines import OceanOpticsValidPixels as _OOValidPixels
 from oceanoptics.defines import OceanOpticsDarkPixels as _OODarkPixels
+from oceanoptics.defines import OceanOpticsMinMaxIntegrationTime as _OOMinMaxIT
 #----------------------------------------------------------
 
 
@@ -52,12 +53,16 @@ class OceanOpticsUSBComm(object):
         if model not in _OOModelConfig.keys():
             raise _OOError('Unkown OceanOptics spectrometer model: %s' % model)
 
+        # Add model
+        self.model = model
+
         vendorId, productId = _OOVendorId, _OOModelConfig[model]['ProductId']
         self._EPout = _OOModelConfig[model]['EPout']
         self._EPin0 = _OOModelConfig[model]['EPin0']
         self._EPin1 = _OOModelConfig[model]['EPin1']
         self._EPin0_size = _OOModelConfig[model]['EPin0_size']
         self._EPin1_size = _OOModelConfig[model]['EPin1_size']
+        self._min_integration_time, self._max_integration_time = _OOMinMaxIT[model]
 
         devices = usb.core.find(find_all=True,
                         custom_match=lambda d: (d.idVendor==vendorId and
@@ -244,8 +249,12 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
         """get or set integration_time in seconds
         """
         if not (time_sec is None):
-            time_us = time_sec * 1000000
-            self._set_integration_time(time_us)
+            if self._min_integration_time <= time_sec < self._max_integration_time:
+                time_us = time_sec * 1000000
+                self._set_integration_time(time_us)
+            else:
+                raise _OOError("Integration time for %s required to be %f <= t < %f" %
+                               (self.model, self._min_integration_time, self._max_integration_time))
         self._integration_time = self._query_status()['integration_time']*1e-6
         return self._integration_time
 
