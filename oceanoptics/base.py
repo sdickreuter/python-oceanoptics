@@ -108,6 +108,7 @@ class OceanOpticsUSBComm(object):
         return self._usb_read(epi, epi_size)
 
     def dispose(self):
+        usb.util.release_interface(self._dev,0)
         usb.util.dispose_resources(self._dev)
 
     def __enter__(self):
@@ -166,7 +167,7 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
             wavelengths of spectrometer
         """
         if only_valid_pixels:
-            return self._wl
+            return self._wl[self._valid_pixels]
         else:
             return np.linspace(0,self._pixels-1)
 
@@ -198,6 +199,9 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
 
         data = np.array(self._request_spectrum(), dtype=np.float64)
         dark = np.mean(data[self._dark_pixels])
+        # uncomment to check if the definition of self._dark_pixels is correct
+        #print(data[self._dark_pixels])
+
         if correct_darkcounts:
             data = data - dark
 
@@ -253,8 +257,8 @@ class OceanOpticsBase(OceanOpticsSpectrometer, OceanOpticsUSBComm):
                 time_us = time_sec * 1000000
                 self._set_integration_time(time_us)
             else:
-                raise _OOError("Integration time for %s required to be %f <= t < %f" %
-                               (self.model, self._min_integration_time, self._max_integration_time))
+                raise _OOError("Integration time t = %f for %s required to be %f <= t < %f" %
+                               (time_sec ,self.model, self._min_integration_time, self._max_integration_time))
         self._integration_time = self._query_status()['integration_time']*1e-6
         return self._integration_time
 
