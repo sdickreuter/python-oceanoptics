@@ -22,7 +22,7 @@ class Dummy(_OOBase):
         spectrum = np.array(spectrum, dtype=np.float)
         spectrum += 500 * self.__gaussian(self.wavelengths(), 512, 0.02)
         spectrum = np.array(spectrum, dtype=np.uint16)
-        time.sleep(float(self._integration_time))
+        time.sleep(float(self._integration_time)/1000)
         return spectrum
 
     def intensities(self, raw=False, only_valid_pixels=True,

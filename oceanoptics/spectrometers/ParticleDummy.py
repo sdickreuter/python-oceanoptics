@@ -51,7 +51,7 @@ class ParticleDummy(_OOBase):
 
 
     def _request_spectrum(self):
-        time.sleep(self._integration_time)
+        time.sleep(self._integration_time/1000)
         if self._stage is None:
             return self._calc_spectrum()
         else:
