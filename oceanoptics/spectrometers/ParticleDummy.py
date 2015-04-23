@@ -77,3 +77,6 @@ class ParticleDummy(_OOBase):
         #      This overides the provided function of OOBase
         time_ms = int(time_us/1000)
         self._integration_time  = time_us
+
+    def dispose(self):
+        pass

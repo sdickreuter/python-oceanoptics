@@ -38,3 +38,6 @@ class Dummy(_OOBase):
     def integration_time(self, time_us=None):
         self._integration_time = time_us*1000
         return self._integration_time
+
+    def dispose(self):
+        pass
